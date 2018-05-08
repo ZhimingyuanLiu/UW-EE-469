@@ -1,0 +1,113 @@
+`timescale 1ps/1ps
+
+module D_FF (q, d, reset, clk);
+	output reg q;
+	input d, reset, clk;
+	
+	always_ff @(posedge clk)
+	if (reset)
+		q <= 0; // On reset, set to 0
+	else
+		q <= d; // Otherwise out = d
+
+endmodule
+
+// single 64 bit register
+module Register (q,d,clk,we);
+input logic clk,we;
+input logic [63:0] d;
+output logic [63:0] q;
+
+logic [63:0] r_ps;
+logic [63:0] r_ns;
+
+		genvar i;
+			generate 
+			for(i = 0; i < 64; i++) begin: storage
+			mux2_1_bit select(r_ns[i],r_ps[i] , d[i], we);
+			D_FF dff1(r_ps[i],r_ns[i],1'b0,clk);
+			assign q[i] = r_ps[i];
+			end
+			endgenerate
+endmodule
+
+// The large memeory with 32 counts of 64 bit registers
+module Registers (q,d,clk,we);
+
+input logic clk;
+input logic [31:0] we;
+input logic [63:0] d;
+output logic [63:0] q [31:0];
+
+genvar i;			
+generate
+for(i = 0; i < 31; i++)	begin: quantity
+Register reg1(q[i],d,clk,we[i]);
+end
+endgenerate
+
+assign q[31] = 0;
+endmodule
+
+module Register_testbench();
+logic clk,we;
+logic [63:0] d;
+logic [63:0] q;
+ 
+ Register dut (q,d,clk,we);
+
+ // Set up the clock.
+ parameter CLOCK_PERIOD=100;
+ initial begin
+ clk <= 0;
+ forever #(CLOCK_PERIOD/2) clk <= ~clk;
+ end
+
+ // Set up the inputs to the design. Each line is a clock cycle.
+ initial begin
+ we <= 1; @(posedge clk);
+ d <= 128; @(posedge clk);
+ we <= 0;@(posedge clk);
+ d <= 1;@(posedge clk);
+ @(posedge clk);
+ @(posedge clk);
+ @(posedge clk);
+ @(posedge clk);
+ we <= 1;@(posedge clk);
+ @(posedge clk);
+ $stop; // End the simulation.
+ end
+endmodule 
+
+
+module Registers_testbench();
+logic clk;
+logic [31:0] we;
+logic [63:0] d;
+logic [63:0] q [31:0];
+ 
+ Registers dut (q,d,clk,we);
+
+ // Set up the clock.
+ parameter CLOCK_PERIOD=100;
+ initial begin
+ clk <= 0;
+ forever #(CLOCK_PERIOD/2) clk <= ~clk;
+ end
+
+ // Set up the inputs to the design. Each line is a clock cycle.
+ initial begin
+ we <= 32'b00000000001000000000000000000000; @(posedge clk);
+ d <= 128; @(posedge clk);
+ we <= 0;@(posedge clk);
+ d <= 1;@(posedge clk);
+ @(posedge clk);
+ @(posedge clk);
+ @(posedge clk);
+ @(posedge clk);
+ we <= 32'b0000000000010000000000000000000;@(posedge clk);
+ @(posedge clk);
+ $stop; // End the simulation.
+ end
+endmodule 
+		
