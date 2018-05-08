@@ -1,2 +1,1 @@
-src/main/resources/static/* linguist-vendored
-project-docjs/* linguist-documentation
+static/* linguist-vendored
