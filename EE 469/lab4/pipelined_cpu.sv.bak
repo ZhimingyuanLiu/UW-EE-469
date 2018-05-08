@@ -1,9 +1,0 @@
-module pipelined_cpu(clk, reset);
-input logic clk, reset;
-
-logic [63:0] da,db,dW,PC,pc_ps,pc_ns;
-logic [31:0] inst;
-
-Register pc(pc_ps,pc_ns,clk,1'b1,reset);
-instructmem inst_mem(pc_ps,inst,clk);
-Inst2Reg buffer1({[63:0]pc_n, instructionOut, clk, reset);
