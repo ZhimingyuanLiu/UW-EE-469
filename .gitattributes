@@ -10,4 +10,4 @@
 *.gitattributes text
 .gitignore text
 *.md text
-*.css linguist-language=Verilog 
+*.css linguist-language=systemVerilog 
